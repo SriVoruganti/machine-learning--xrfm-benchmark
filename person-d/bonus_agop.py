@@ -6,24 +6,24 @@ from load_data import load_dataset
 import pickle
 import os
 
-# ── Load data ──────────────────────────────────────────────────────
+#Load data
 X_train, X_val, X_test, y_train, y_val, y_test, feature_names = load_dataset(
     "superconductivity", return_feature_names=True
 )
 
-# ── Load saved model ───────────────────────────────────────────────
+# Load saved model 
 print("Loading saved model...")
 with open("xrfm_superconductor.pkl", "rb") as f:
     model = pickle.load(f)
 print("Model loaded!")
 
-# ── Standard AGOP ─────────────────────────────────────────────────
+# Standard AGOP 
 print("\nExtracting standard AGOP...")
 agops = model.collect_best_agops()
 agop_matrix = torch.stack(agops).mean(dim=0).numpy()
 agop_diag_standard = np.diag(agop_matrix)
 
-# ── Residual Weighted AGOP ─────────────────────────────────────────
+# Residual Weighted AGOP
 print("Computing residual-weighted AGOP...")
 
 def residual_weighted_agop(model, X, y, phi="squared"):
@@ -91,7 +91,6 @@ def residual_weighted_agop(model, X, y, phi="squared"):
     return agop_res, gradients, weights, residuals
 
 
-# Use a subset for speed (finite differences on 14k points × 81 features is slow)
 # Use 2000 training points
 N_SUBSET = 2000
 np.random.seed(42)
@@ -111,7 +110,7 @@ agop_diag_residual = np.diag(agop_res_matrix)
 agop_diag_standard_norm = agop_diag_standard / agop_diag_standard.sum()
 agop_diag_residual_norm = agop_diag_residual / agop_diag_residual.sum()
 
-# ── Compare split directions ───────────────────────────────────────
+# Compare split directions 
 print("\n--- Top eigenvectors (split directions) ---")
 
 # Standard AGOP top eigenvector
