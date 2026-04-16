@@ -1,0 +1,3 @@
+method,split_alignment,cosine_similarity
+Standard AGOP,0.7355555555555555,1.0
+Residual AGOP,0.7555555555555555,0.9683749387015694
