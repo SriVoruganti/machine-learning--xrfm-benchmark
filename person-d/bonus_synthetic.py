@@ -163,7 +163,7 @@ if align_res > align_std:
 else:
     print(">>> Standard AGOP finds a better split direction")
 
-# ── 9. Plot ────────────────────────────────────────────────────────
+# 9. Plot 
 fig, axes = plt.subplots(1, 3, figsize=(18, 6))
 
 # Plot 1 - AGOP diagonal comparison
