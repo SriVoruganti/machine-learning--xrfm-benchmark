@@ -7,14 +7,14 @@ from sklearn.decomposition import PCA
 from sklearn.feature_selection import mutual_info_regression
 from sklearn.inspection import permutation_importance
 
-# ── Load data ──────────────────────────────────────────────────────
+# Load data 
 X_train, X_val, X_test, y_train, y_val, y_test, feature_names = load_dataset(
     "superconductivity", return_feature_names=True
 )
 print(f"Features: {len(feature_names)}")
 print(f"First 5 features: {feature_names[:5]}")
 
-# ── Train full xRFM model ──────────────────────────────────────────
+# Train full xRFM model 
 import pickle
 import os
 
@@ -31,7 +31,7 @@ else:
         pickle.dump(model, f)
     print("Model saved!")
 
-# ── 1. AGOP diagonal ───────────────────────────────────────────────
+# 1. AGOP diagonal 
 print("\nExtracting AGOP...")
 agops = model.collect_best_agops()
 
@@ -43,25 +43,25 @@ agop_importance = agop_diag / agop_diag.sum()
 print(f"Number of leaves: {len(agops)}")
 print(f"AGOP shape: {agop_matrix.shape}")
 
-# ── 2. PCA loadings ────────────────────────────────────────────────
+# 2. PCA loadings 
 print("Computing PCA...")
 pca = PCA(n_components=1)
 pca.fit(X_train)
 pca_importance = np.abs(pca.components_[0])
 pca_importance = pca_importance / pca_importance.sum()
 
-# ── 3. Mutual information ──────────────────────────────────────────
+# 3. Mutual information 
 print("Computing Mutual Information...")
 mi_scores = mutual_info_regression(X_train, y_train, random_state=42)
 mi_importance = mi_scores / mi_scores.sum()
 
-# ── 4. Permutation importance ──────────────────────────────────────
+# 4. Permutation importance 
 print("Computing Permutation Importance...")
 from sklearn.metrics import make_scorer, mean_squared_error
 
 def rmse_scorer(estimator, X, y):
     preds = estimator.predict(X).squeeze()
-    return -np.sqrt(mean_squared_error(y, preds))  # negative because higher=better
+    return -np.sqrt(mean_squared_error(y, preds))  
 
 perm = permutation_importance(
     model, X_val, y_val,
@@ -73,7 +73,7 @@ perm_importance = perm.importances_mean
 perm_importance = np.clip(perm_importance, 0, None)
 perm_importance = perm_importance / perm_importance.sum() if perm_importance.sum() > 0 else perm_importance
 
-# ── Compile results ────────────────────────────────────────────────
+# Compile results 
 import pandas as pd
 
 importance_df = pd.DataFrame({
@@ -87,7 +87,7 @@ importance_df = pd.DataFrame({
 print("\n--- Top 10 features by AGOP ---")
 print(importance_df.nlargest(10, "AGOP")[["feature", "AGOP", "PCA", "MI", "Permutation"]].to_string(index=False))
 
-# ── Plot ───────────────────────────────────────────────────────────
+# Plot
 fig, axes = plt.subplots(2, 2, figsize=(18, 12))
 
 methods = ["AGOP", "PCA", "MI", "Permutation"]
