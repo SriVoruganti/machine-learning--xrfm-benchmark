@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from xrfm import xRFM
 from sklearn.metrics import mean_squared_error
 
-# ── 1. Generate synthetic dataset ──────────────────────────────────
+# 1. Generate synthetic dataset 
 np.random.seed(42)
 
 N = 3000
@@ -39,7 +39,7 @@ print(f"y range: {y.min():.2f} to {y.max():.2f}")
 
 feature_names = [f"x{i}" for i in range(d)]
 
-# ── 2. Train xRFM ──────────────────────────────────────────────────
+# 2. Train xRFM 
 print("\nTraining xRFM on synthetic data...")
 model = xRFM()
 model.fit(X_train, y_train, X_val, y_val)
@@ -52,7 +52,7 @@ test_rmse  = np.sqrt(mean_squared_error(y_test, y_pred_test))
 print(f"Train RMSE: {train_rmse:.4f}")
 print(f"Test RMSE:  {test_rmse:.4f}")
 
-# ── 3. Compute residuals and weights ───────────────────────────────
+# 3. Compute residuals and weights 
 residuals = y_train - y_pred_train
 weights_std = np.ones(len(X_train)) / len(X_train)   # uniform
 weights_res = residuals ** 2
@@ -63,7 +63,7 @@ print(f"  Mean:  {residuals.mean():.4f}")
 print(f"  Std:   {residuals.std():.4f}")
 print(f"  Max |r|: {np.abs(residuals).max():.4f}")
 
-# Which region has large residuals?
+
 high_residual_mask = np.abs(residuals) > np.percentile(np.abs(residuals), 75)
 x0_positive_mask   = X_train[:, 0] >= 0
 
@@ -71,7 +71,7 @@ overlap = (high_residual_mask & x0_positive_mask).sum()
 print(f"\nHigh residual points in x0>=0 region: {overlap}")
 print(f"(confirms model struggles where x1 matters)")
 
-# ── 4. Compute gradients via finite differences ────────────────────
+# 4. Compute gradients via finite differences 
 print("\nComputing gradients via finite differences...")
 
 eps = 1e-4
@@ -86,7 +86,7 @@ for j in range(d_feat):
     gradients[:, j] = (y_plus - y_base) / eps
     print(f"  Feature {j+1}/{d_feat} done")
 
-# ── 5. Standard AGOP ───────────────────────────────────────────────
+# 5. Standard AGOP 
 agop_standard = np.zeros((d_feat, d_feat))
 for i in range(n):
     g = gradients[i:i+1].T
@@ -99,7 +99,7 @@ agop_std_diag_norm = agop_std_diag / agop_std_diag.sum()
 eigvals_std, eigvecs_std = np.linalg.eigh(agop_standard)
 top_eigvec_std = eigvecs_std[:, -1]
 
-# ── 6. Residual-weighted AGOP ──────────────────────────────────────
+# 6. Residual-weighted AGOP 
 agop_residual = np.zeros((d_feat, d_feat))
 for i in range(n):
     g = gradients[i:i+1].T
@@ -112,7 +112,7 @@ agop_res_diag_norm = agop_res_diag / agop_res_diag.sum()
 eigvals_res, eigvecs_res = np.linalg.eigh(agop_residual)
 top_eigvec_res = eigvecs_res[:, -1]
 
-# ── 7. Compare split directions ────────────────────────────────────
+# 7. Compare split directions
 cosine_sim = np.abs(np.dot(top_eigvec_std, top_eigvec_res))
 print(f"\n--- Split Direction Comparison ---")
 print(f"Cosine similarity: {cosine_sim:.4f}")
@@ -127,7 +127,7 @@ top_res_idx = np.argsort(np.abs(top_eigvec_res))[::-1][:5]
 for i in top_res_idx:
     print(f"  {feature_names[i]}: {top_eigvec_res[i]:.4f}")
 
-# ── 8. Performance comparison ──────────────────────────────────────
+# 8. Performance comparison
 # Split test set using each criterion and evaluate
 print("\n--- Performance Comparison ---")
 
